@@ -46,13 +46,21 @@ components:
       properties:
         fullName:
           type: string
+          minLength: 2 # Added string length validation
+          maxLength: 100 # Added string length validation
           example: Jijo Daniel
         email:
           type: string
+          format: email # Added email format validation
+          maxLength: 255 # Added string length validation
           example: jijo**@gmail.com
         subject:
           type: string
+          minLength: 5 # Added string length validation
+          maxLength: 200 # Added string length validation
           example: 'Partnership Opportunity'
         messageText:
           type: string
-          example: "I'm interested in exploring a potential partnership with your company."
+          minLength: 10 # Added string length validation
+          maxLength: 1000 # Added string length validation
+          example: "I'm interested in exploring a potential partnership with your company.'"
