@@ -1,0 +1,58 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: Contact Us Endpoints
+    url: http://localhost:8080/api
+info:
+  description: This API allows users to submit contact forms with their inquiries or feedback.
+  version: "1.0.0"
+  title: Contact Us API
+
+tags:
+  - name: ContactUs
+    description: Operations related to submitting contact forms.
+paths:
+  /contact:
+    post:
+      tags:
+        - ContactUs
+      summary: Submit a new contact form.
+      operationId: submitContactForm
+      description: This endpoint allows individuals to submit their contact information and a message. It's used for inquiries, feedback, or general communication with the service provider.
+      responses:
+        '200':
+          description: 'Contact form submitted successfully!'
+        '429':
+          description: 'You have exceeded the daily submission limit.'
+        '400':
+          description: 'Please wait before sending another message.'
+        '500':
+          description: 'Failed to submit contact form.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactFormRequest'
+        description: Data for the contact form submission.
+components:
+  schemas:
+    ContactFormRequest:
+      type: object
+      required:
+        - fullName
+        - email
+        - subject
+        - messageText
+      properties:
+        fullName:
+          type: string
+          example: Jijo Daniel
+        email:
+          type: string
+          example: jijo**@gmail.com
+        subject:
+          type: string
+          example: 'Partnership Opportunity'
+        messageText:
+          type: string
+          example: "I'm interested in exploring a potential partnership with your company."
