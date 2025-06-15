@@ -1,0 +1,273 @@
+openapi: 3.0.0
+info:
+  title: Employee Management API
+  version: 1.0.0
+  description: API for managing employee information, including their departments, roles, and salary history.
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local Development Server
+
+components:
+  schemas:
+    EmployeeDTO:
+      type: object
+      description: Data Transfer Object for Employee information.
+      required:
+        - empId
+        - firstName
+        - lastName
+        - email
+        - hireDate
+      properties:
+        empId:
+          type: integer
+          format: int32
+          description: Unique identifier for the employee.
+          example: 101
+        firstName:
+          type: string
+          description: The first name of the employee.
+          maxLength: 50
+          example: John
+        lastName:
+          type: string
+          description: The last name of the employee.
+          maxLength: 50
+          example: Doe
+        email:
+          type: string
+          format: email
+          description: The email address of the employee.
+          maxLength: 100
+          example: john.doe@example.com
+        phone:
+          type: string
+          nullable: true
+          description: The phone number of the employee.
+          maxLength: 20
+          example: "+1-555-123-4567"
+        hireDate:
+          type: string
+          format: date
+          description: The date when the employee was hired (YYYY-MM-DD).
+          example: "2023-01-15"
+        department:
+          $ref: '#/components/schemas/DepartmentDTO'
+        role:
+          $ref: '#/components/schemas/RoleDTO'
+        salaries:
+          type: array
+          description: A list of salary history entries for the employee.
+          items:
+            $ref: '#/components/schemas/SalaryDTO'
+          minItems: 0 # An employee might not have salary history yet
+          example:
+            - salary: 50000.00
+              effectiveFrom: "2023-01-15"
+            - salary: 55000.00
+              effectiveFrom: "2024-01-15"
+
+    DepartmentDTO:
+      type: object
+      description: The department the employee belongs to.
+      required:
+        - deptId
+        - deptName
+      properties:
+        deptId:
+          type: integer
+          format: int32
+          description: Unique identifier for the department.
+          example: 1
+        deptName:
+          type: string
+          description: The name of the department.
+          maxLength: 100
+          example: "Human Resources"
+
+    RoleDTO:
+      type: object
+      description: The role of the employee within the organization.
+      required:
+        - roleId
+        - roleName
+      properties:
+        roleId:
+          type: integer
+          format: int32
+          description: Unique identifier for the role.
+          example: 1
+        roleName:
+          type: string
+          description: The name of the role.
+          maxLength: 100
+          example: "Software Engineer"
+
+    SalaryDTO:
+      type: object
+      description: Data Transfer Object for Employee Salary information.
+      required:
+        - salary
+        - effectiveFrom
+      properties:
+        salary:
+          type: number
+          format: double
+          description: The salary amount.
+          minimum: 0
+          example: 60000.00
+        effectiveFrom:
+          type: string
+          format: date
+          description: The date from which this salary is effective (YYYY-MM-DD).
+          example: "2023-07-01"
+
+    PaginatedEmployees: # New schema for paginated response
+      type: object
+      description: A paginated list of employees.
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeDTO'
+          description: The list of employees for the current page.
+        pageNumber:
+          type: integer
+          description: The current page number (0-indexed).
+          minimum: 0
+          example: 0
+        pageSize:
+          type: integer
+          description: The number of items per page.
+          minimum: 1
+          example: 10
+        totalElements:
+          type: integer
+          description: The total number of employees across all pages.
+          minimum: 0
+          example: 100
+        totalPages:
+          type: integer
+          description: The total number of pages available.
+          minimum: 1
+          example: 10
+        isLast:
+          type: boolean
+          description: Indicates if this is the last page.
+          example: false
+
+# Example of a path where these DTOs could be used
+paths:
+  /employees:
+    get:
+      summary: Get all employees with pagination
+      operationId: getAllEmployees
+      parameters:
+        - name: page
+          in: query
+          description: The page number to retrieve (0-indexed).
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          description: The number of employees per page.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+      responses:
+        '200':
+          description: A paginated list of employees.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEmployees' # Referencing the new pagination schema
+    post:
+      summary: Create a new employee
+      operationId: createEmployee
+      requestBody:
+        description: Employee object to be created
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeDTO'
+      responses:
+        '201':
+          description: Employee created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDTO'
+        '400':
+          description: Invalid input.
+
+  /employees/{empId}:
+    get:
+      summary: Get employee by ID
+      operationId: getEmployeeById
+      parameters:
+        - name: empId
+          in: path
+          required: true
+          description: ID of the employee to retrieve
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Employee data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDTO'
+        '404':
+          description: Employee not found.
+    put:
+      summary: Update an existing employee
+      operationId: updateEmployee
+      parameters:
+        - name: empId
+          in: path
+          required: true
+          description: ID of the employee to update
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Employee object with updated data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeDTO'
+      responses:
+        '200':
+          description: Employee updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDTO'
+        '400':
+          description: Invalid input.
+        '404':
+          description: Employee not found.
+    delete:
+      summary: Delete an employee
+      operationId: deleteEmployee
+      parameters:
+        - name: empId
+          in: path
+          required: true
+          description: ID of the employee to delete
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Employee deleted successfully.
+        '404':
+          description: Employee not found.
